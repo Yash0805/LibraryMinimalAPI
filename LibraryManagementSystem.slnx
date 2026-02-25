@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="LibraryManagementSystem.Core/LibraryManagementSystem.Core.csproj" />
+  <Project Path="LibraryManagementSystem.Persistence/LibraryManagementSystem.Persistence.csproj" />
+  <Project Path="LibraryManagementSystem.Services/LibraryManagementSystem.Services.csproj" />
+  <Project Path="LibraryManagementSystem/LibraryManagementSystem.Web.csproj" />
+</Solution>
