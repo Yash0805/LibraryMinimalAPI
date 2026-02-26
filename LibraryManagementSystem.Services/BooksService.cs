@@ -1,5 +1,6 @@
 ﻿using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Persistence;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 
 namespace LibraryManagementSystem.Services;
@@ -21,6 +22,7 @@ public sealed class BooksService
             query = query.Where(b => b.BookName.Contains(BookName));
         }
         IReadOnlyList<BooksDto> Books = query
+            .Include (c => c.Category)
             .Select
             (b => new BooksDto
             (
@@ -29,7 +31,7 @@ public sealed class BooksService
                 b.Publisher,
                 b.Author,
                 b.Price,
-                b.CategoryId
+                b.Category.CategoryName
             ))
             .ToList();
         return Books;
@@ -37,7 +39,9 @@ public sealed class BooksService
 
     public BooksDto? GetBooksById(int BookId)
     {
-        var Book = _dbContext.Books.FirstOrDefault(b => b.BookId == BookId);
+        var Book = _dbContext.Books
+            .Include(c => c.Category)
+            .FirstOrDefault(b => b.BookId == BookId);
         if (Book is null) return null;
         return new BooksDto(
             Book.BookId,
@@ -45,7 +49,7 @@ public sealed class BooksService
             Book.Publisher,
             Book.Author,
             Book.Price,
-            Book.CategoryId
+            Book.Category.CategoryName
         );
 
     }

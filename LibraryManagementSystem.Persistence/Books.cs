@@ -10,5 +10,6 @@ public sealed class Books
     public required string Publisher { get; set; }
     public required string Author { get; set; }
     public required decimal Price { get; set; }
-    public required int CategoryId { get; set; }
+    public int CategoryId { get; set; }
+    public required Category Category { get; set; }
 }
