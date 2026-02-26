@@ -26,5 +26,4 @@ public static class BooksEndpoints
         var Book = booksService.GetBooksById(BookId);
         return Book is null ? TypedResults.NotFound() : TypedResults.Ok(Book);
     }
-
 }
