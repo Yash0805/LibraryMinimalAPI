@@ -1,5 +1,6 @@
 ﻿using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibraryManagementSystem.Services;
 
@@ -14,13 +15,15 @@ public sealed class BookIssueService
 
     public IEnumerable<BookIssueDto> GetBookIssueList()
     {
-        IReadOnlyList<BookIssueDto> BookIssues = _dbContext.BookIssue
+        IReadOnlyList<BookIssueDto> BookIssue = _dbContext.BookIssue
+            .Include(b=>b.Book)
+            .Include(m => m.Member)
             .Select
             (bi => new BookIssueDto
             (
                 bi.IssueId,
-                bi.MemberId,
-                bi.BookId,
+                bi.Member.MemberName,
+                bi.Book.BookName,
                 bi.IssueDate,
                 bi.ReturnDate,
                 bi.RenewCount,
@@ -28,17 +31,20 @@ public sealed class BookIssueService
                 bi.Status
             ))
             .ToList();
-        return BookIssues;
+        return BookIssue;
     }
 
     public BookIssueDto? GetBookIssueById(int IssueId)
     {
-        var BookIssue = _dbContext.BookIssue.FirstOrDefault(bi => bi.IssueId == IssueId);
+        var BookIssue = _dbContext.BookIssue
+            .Include(b => b.Book)
+            .Include(m => m.Member)
+            .FirstOrDefault(bi => bi.IssueId == IssueId);
         if (BookIssue is null) return null;
         return new BookIssueDto(
             BookIssue.IssueId,
-            BookIssue.MemberId,
-            BookIssue.BookId,
+            BookIssue.Member.MemberName,
+            BookIssue.Book.BookName,
             BookIssue.IssueDate,
             BookIssue.ReturnDate,
             BookIssue.RenewCount,

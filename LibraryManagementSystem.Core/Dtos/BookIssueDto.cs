@@ -2,8 +2,8 @@
 
 public sealed class BookIssueDto(
     int IssueId,
-    int MemberId,
-    int BookId,
+    string MemberName,
+    string BookName,
     DateOnly IssueDate,
     DateOnly ReturnDate,
     int RenewCount,
@@ -11,8 +11,8 @@ public sealed class BookIssueDto(
     string Status)
 {
     public int IssueId { get; } = IssueId;
-    public int MemberId { get; } = MemberId;
-    public int BookId { get; } = BookId;
+    public string MemberName { get; } = MemberName;
+    public string BookName { get; } = BookName;
     public DateOnly IssueDate { get; } = IssueDate;
     public DateOnly ReturnDate { get; } = ReturnDate;
     public int RenewCount { get; } = RenewCount;

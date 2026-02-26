@@ -8,4 +8,5 @@ public sealed class Members
 
     public required string MemberName { get; set; }
     public required string MemberType { get; set; }
+    public IList<BookIssue> BookIssue { get; init; } = [];
 }
