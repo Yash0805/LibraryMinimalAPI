@@ -1,5 +1,6 @@
 ﻿using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Persistence;
+using System.Collections.ObjectModel;
 
 namespace LibraryManagementSystem.Services;
 
@@ -12,9 +13,14 @@ public sealed class BooksService
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    public IEnumerable<BooksDto> GetBooksList()
+    public IEnumerable<BooksDto> GetBooksList(string? BookName = null)
     {
-        IReadOnlyList<BooksDto> Books = _dbContext.Books
+        IQueryable<Books> query = _dbContext.Books.AsQueryable();
+        if (!string.IsNullOrEmpty(BookName))
+        {
+            query = query.Where(b => b.BookName.Contains(BookName));
+        }
+        IReadOnlyList<BooksDto> Books = query
             .Select
             (b => new BooksDto
             (
@@ -41,5 +47,6 @@ public sealed class BooksService
             Book.Price,
             Book.CategoryId
         );
+
     }
 }

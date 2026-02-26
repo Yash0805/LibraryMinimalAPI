@@ -1,4 +1,5 @@
 ﻿using LibraryManagementSystem.Core.Dtos;
+using LibraryManagementSystem.Persistence;
 using LibraryManagementSystem.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -14,9 +15,9 @@ public static class BooksEndpoints
         return endpoint;
     }
 
-    private static Ok<IEnumerable<BooksDto>> GetBooks(BooksService booksService)
+    private static Ok<IEnumerable<BooksDto>> GetBooks(BooksService booksService, string? BookName)
     {
-        var Book = booksService.GetBooksList();
+        var Book = booksService.GetBooksList(BookName);
         return TypedResults.Ok(Book);
     }
 
@@ -25,4 +26,5 @@ public static class BooksEndpoints
         var Book = booksService.GetBooksById(BookId);
         return Book is null ? TypedResults.NotFound() : TypedResults.Ok(Book);
     }
+
 }
