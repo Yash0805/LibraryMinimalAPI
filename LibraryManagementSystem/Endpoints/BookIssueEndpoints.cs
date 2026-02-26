@@ -14,9 +14,9 @@ public static class BookIssueEndpoints
         return endpoint;
     }
 
-    private static Ok<IEnumerable<BookIssueDto>> GetBookIssueList(BookIssueService bookIssueService)
+    private static Ok<IEnumerable<BookIssueDto>> GetBookIssueList(BookIssueService bookIssueService,string? MemberName)
     {
-        var bookIssues = bookIssueService.GetBookIssueList();
+        var bookIssues = bookIssueService.GetBookIssueList(MemberName);
         return TypedResults.Ok(bookIssues);
     }
 

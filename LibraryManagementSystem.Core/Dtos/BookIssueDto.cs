@@ -3,6 +3,7 @@
 public sealed class BookIssueDto(
     int IssueId,
     string MemberName,
+    string MemberType,
     string BookName,
     DateOnly IssueDate,
     DateOnly ReturnDate,
@@ -12,6 +13,7 @@ public sealed class BookIssueDto(
 {
     public int IssueId { get; } = IssueId;
     public string MemberName { get; } = MemberName;
+    public string MemberType { get; } = MemberType;
     public string BookName { get; } = BookName;
     public DateOnly IssueDate { get; } = IssueDate;
     public DateOnly ReturnDate { get; } = ReturnDate;

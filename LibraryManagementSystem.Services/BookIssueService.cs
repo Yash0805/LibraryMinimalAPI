@@ -1,6 +1,7 @@
 ﻿using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace LibraryManagementSystem.Services;
 
@@ -13,9 +14,14 @@ public sealed class BookIssueService
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }
 
-    public IEnumerable<BookIssueDto> GetBookIssueList()
+    public IEnumerable<BookIssueDto> GetBookIssueList(string? MemberName = null)
     {
-        IReadOnlyList<BookIssueDto> BookIssue = _dbContext.BookIssue
+        IQueryable<BookIssue> query = _dbContext.BookIssue.AsQueryable();
+        if(!string.IsNullOrEmpty(MemberName))
+        {
+            query = query.Where(bi => bi.Member.MemberName.Contains(MemberName));
+        }
+        IReadOnlyList<BookIssueDto> bookIssues = query
             .Include(b=>b.Book)
             .Include(m => m.Member)
             .Select
@@ -23,6 +29,7 @@ public sealed class BookIssueService
             (
                 bi.IssueId,
                 bi.Member.MemberName,
+                bi.Member.MemberType,
                 bi.Book.BookName,
                 bi.IssueDate,
                 bi.ReturnDate,
@@ -31,7 +38,7 @@ public sealed class BookIssueService
                 bi.Status
             ))
             .ToList();
-        return BookIssue;
+        return bookIssues;
     }
 
     public BookIssueDto? GetBookIssueById(int IssueId)
@@ -44,6 +51,7 @@ public sealed class BookIssueService
         return new BookIssueDto(
             BookIssue.IssueId,
             BookIssue.Member.MemberName,
+            BookIssue.Member.MemberType,
             BookIssue.Book.BookName,
             BookIssue.IssueDate,
             BookIssue.ReturnDate,
