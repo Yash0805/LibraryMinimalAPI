@@ -1,6 +1,8 @@
 ﻿using LibraryManagementSystem.Core.Dtos;
+using LibraryManagementSystem.Core.Request;
 using LibraryManagementSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LibraryManagementSystem.Services;
@@ -8,6 +10,7 @@ namespace LibraryManagementSystem.Services;
 public sealed class BookIssueService
 {
     private readonly AppDbContext _dbContext;
+    private readonly ILogger<BookIssueService> _logger;
 
     public BookIssueService(AppDbContext dbContext)
     {
@@ -59,5 +62,57 @@ public sealed class BookIssueService
             BookIssue.RenewDate,
             BookIssue.Status
         );
+    }
+    public BookIssueDto? CreateBookIssueRequest(CreateBookIssueRequest request)
+    {
+        try
+        {
+            var bookIssue = new BookIssue
+            {
+                MemberId = request.MemberId,
+                BookId = request.BookId,
+                IssueDate = request.IssueDate,
+                ReturnDate = request.ReturnDate,
+                RenewCount = request.RenewCount,
+                RenewDate = request.RenewDate,  
+                Status = request.Status
+            };
+            _dbContext.BookIssue.Add(bookIssue);
+            _dbContext.SaveChanges();
+
+            var BookIssueDto = new BookIssueDto(
+                bookIssue.IssueId,
+                 _dbContext.Members
+                    .Where(m => m.MemberId == bookIssue.MemberId)
+                    .Select(m => m.MemberName)
+                    .FirstOrDefault() ?? string.Empty,
+                 _dbContext.Members
+                    .Where(m => m.MemberId == bookIssue.MemberId)
+                    .Select(m => m.MemberType)
+                    .FirstOrDefault() ?? string.Empty,
+                 _dbContext.Books
+                    .Where(b => b.BookId == bookIssue.BookId)
+                    .Select(b=> b.BookName)
+                    .FirstOrDefault() ?? string.Empty,
+                bookIssue.IssueDate,
+                bookIssue.ReturnDate,
+                bookIssue.RenewCount,
+                bookIssue.ReturnDate,
+                bookIssue.Status
+                );
+            return BookIssueDto;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Database error while creating Books Issue for member id {MemberId}",
+                request.MemberId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Unexpected error while creating Books Issue for Member Id {MemberId} ",
+               request.MemberId);
+        }
+        return null;
     }
 }

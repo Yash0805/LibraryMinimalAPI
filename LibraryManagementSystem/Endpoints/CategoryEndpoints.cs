@@ -1,4 +1,6 @@
-﻿using LibraryManagementSystem.Core.Dtos;
+﻿using Azure.Core;
+using LibraryManagementSystem.Core.Dtos;
+using LibraryManagementSystem.Core.Request;
 using LibraryManagementSystem.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -11,6 +13,7 @@ public static class CategoryEndpoints
         ArgumentNullException.ThrowIfNull(endpoints);
         endpoints.MapGet("Category", GetCategory);
         endpoints.MapGet("Category/{CategoryId}", GetCategoryByID);
+        endpoints.MapPost("Category", CreateCategoryRequest);
         return endpoints;
     }
 
@@ -25,4 +28,15 @@ public static class CategoryEndpoints
         var Category = categoryService.GetCategoryByID(CategoryId);
         return Category is null ? TypedResults.NotFound() : TypedResults.Ok(Category);
     }
+
+    private static IResult CreateCategoryRequest(CategoryService categoryService, CreateCategoryRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.CategoryName))
+            return TypedResults.BadRequest("Category Name is required.");
+        var result = categoryService.CreateCategoryRequest(request); 
+        return result is null
+            ? TypedResults.Problem("There was some problem. See log for more details.")
+            : TypedResults.Ok(result);
+    }
+
 }

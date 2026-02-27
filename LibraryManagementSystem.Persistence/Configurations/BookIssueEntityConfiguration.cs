@@ -28,26 +28,13 @@ public sealed class BookIssueEntityConfiguration : IEntityTypeConfiguration<Book
         builder.Property(bi => bi.RenewCount)
             .IsRequired()
             .HasDefaultValue(0);
-        builder.ToTable(bi =>
-        {
-            bi.HasCheckConstraint(
-            "CK_BookIssue_RenewCount",
-            "RenewCount >= 0 AND RenewCount <= 1"
-            );
-        });
 
         builder.Property(bi => bi.Status)
             .IsRequired()
             .HasDefaultValue("Issued")
             .HasMaxLength(20);
 
-        builder.ToTable(bi =>
-        {
-            bi.HasCheckConstraint(
-                "CK_BookIssue_Status",
-                "Status IN ('Issued', 'Returned','Renewed')"
-            );
-        });
+      
     }
 }
 

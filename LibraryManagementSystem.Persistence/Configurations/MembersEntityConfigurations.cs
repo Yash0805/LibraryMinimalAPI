@@ -19,12 +19,5 @@ public sealed class MembersEntityConfigurations : IEntityTypeConfiguration<Membe
                .IsRequired()
                .HasMaxLength(20);
         
-        builder.ToTable(t =>
-        {
-            t.HasCheckConstraint(
-                "CK_Members_MemberType",
-                "MemberType IN ('Premium', 'Regular')"
-            );
-        });
     }
 }

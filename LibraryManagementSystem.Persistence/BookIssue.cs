@@ -13,6 +13,6 @@ public sealed class BookIssue
     public int RenewCount { get; set; }
     public DateOnly? RenewDate { get; set; }
     public string Status { get; set; }
-    public required Members Member { get; set; }
-    public required Books Book { get; set; }
+    public Members Member { get; set; }
+    public  Books Book { get; set; }
 }

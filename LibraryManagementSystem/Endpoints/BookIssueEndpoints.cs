@@ -1,4 +1,5 @@
 ﻿using LibraryManagementSystem.Core.Dtos;
+using LibraryManagementSystem.Core.Request;
 using LibraryManagementSystem.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -11,6 +12,7 @@ public static class BookIssueEndpoints
         ArgumentNullException.ThrowIfNull(endpoint);
         endpoint.MapGet("BookIssue", GetBookIssueList);
         endpoint.MapGet("BookIssue/{IssueId}", GetBookIssueById);
+        endpoint.MapPost("BookIssue", CreateBookIssueRequest);
         return endpoint;
     }
 
@@ -24,5 +26,13 @@ public static class BookIssueEndpoints
     {
         var bookIssues = bookIssueservice.GetBookIssueById(IssueId);
         return bookIssues is null ? TypedResults.NotFound() : TypedResults.Ok(bookIssues);
+    }
+
+    private static IResult CreateBookIssueRequest(BookIssueService bookIssueservice, CreateBookIssueRequest request)
+    {
+        var result = bookIssueservice.CreateBookIssueRequest(request);
+        return result is null
+           ? TypedResults.Problem("There was some problem. See log for more details.")
+           : TypedResults.Ok(result);
     }
 }
