@@ -11,8 +11,9 @@ public static class BookIssueEndpoints
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         endpoint.MapGet("BookIssue", GetBookIssueList);
-        endpoint.MapGet("BookIssue/{IssueId}", GetBookIssueById);
+        endpoint.MapGet("BookIssue/{IssueId:int}", GetBookIssueById);
         endpoint.MapPost("BookIssue", CreateBookIssueRequest);
+        endpoint.MapPatch("BookIssue/{IssueId:int}", PatchBookIssueRequest);
         return endpoint;
     }
 
@@ -34,5 +35,12 @@ public static class BookIssueEndpoints
         return result is null
            ? TypedResults.Problem("There was some problem. See log for more details.")
            : TypedResults.Ok(result);
+    }
+    private static IResult PatchBookIssueRequest(BookIssueService bookIssueservice, PatchBookIssueRequest request, int IssueId )
+    {
+        var result = bookIssueservice.PatchBookIssueRequest(request,IssueId);
+        return result is null
+        ? TypedResults.Problem("There was some problem. See log for more details.")
+        : TypedResults.Ok(result);
     }
 }
