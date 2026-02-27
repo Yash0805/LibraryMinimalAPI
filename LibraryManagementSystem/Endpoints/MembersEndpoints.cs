@@ -1,5 +1,6 @@
 ﻿using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Core.Request;
+using LibraryManagementSystem.Persistence;
 using LibraryManagementSystem.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -11,8 +12,9 @@ public static class MembersEndpoints
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         endpoints.MapGet("Members", GetMembers);
-        endpoints.MapGet("Members/{MemberId}", GetMembersById);
+        endpoints.MapGet("Members/{MemberId:int}", GetMembersById);
         endpoints.MapPost("Members", CreateMemberRequest);
+        endpoints.MapPut("Members/{MemberId:int}", UpdateMemberRequest);
         return endpoints;
     }
 
@@ -34,7 +36,29 @@ public static class MembersEndpoints
             return TypedResults.BadRequest("MemberName is required.");
         if (string.IsNullOrWhiteSpace(request.MemberType))
             return TypedResults.BadRequest("MemberType is required.");
+
+        var validTypes = new[] { "Premium", "Regular" };
+        if (!validTypes.Contains(request.MemberType, StringComparer.OrdinalIgnoreCase))
+            return TypedResults.BadRequest("MemberType must be either 'Premium' or 'Regular'.");
+
         var result = membersService.CreateMemberRequest(request);
+        return result is null
+            ? TypedResults.Problem("There was some problem. See log for more details.")
+            : TypedResults.Ok(result);
+    }
+    private static IResult UpdateMemberRequest(MembersService membersService, CreateMemberRequest request, int MemberId)
+    {
+        if (string.IsNullOrWhiteSpace(request.MemberName))
+            return TypedResults.BadRequest("MemberName is required.");
+
+        if (string.IsNullOrWhiteSpace(request.MemberType))
+            return TypedResults.BadRequest("MemberType is required.");
+
+        var validTypes = new[] { "Premium", "Regular" };
+        if (!validTypes.Contains(request.MemberType, StringComparer.OrdinalIgnoreCase))
+            return TypedResults.BadRequest("MemberType must be either 'Premium' or 'Regular'.");
+
+        var result = membersService.UpdateMemberRequest(request,MemberId);
         return result is null
             ? TypedResults.Problem("There was some problem. See log for more details.")
             : TypedResults.Ok(result);

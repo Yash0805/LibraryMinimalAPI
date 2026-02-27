@@ -72,4 +72,37 @@ public sealed class MembersService
         }
         return null;
     }
+
+    public MembersDto? UpdateMemberRequest(CreateMemberRequest request, int MemberId)
+    {
+        try
+        {
+            var Members = _dbContext.Members.Find(MemberId);
+            if (Members is null) throw new Exception($"Member with id {MemberId} not found ");
+
+            Members.MemberName = request.MemberName;
+            Members.MemberType = request.MemberType;
+            _dbContext.SaveChanges();
+
+
+            var MembersDto = new MembersDto(
+                Members.MemberId,
+                Members.MemberName,
+                Members.MemberType);
+            return MembersDto;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex,
+               "Database error while creating Member for Member  name {MemberName} ",
+                request.MemberName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Unexpected error while creating Member for Member  name {MemberName} ",
+               request.MemberName);
+        }
+        return null;
+    }
 }
