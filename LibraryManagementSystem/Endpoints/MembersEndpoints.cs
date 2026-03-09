@@ -46,6 +46,7 @@ public static class MembersEndpoints
             ? TypedResults.Problem("There was some problem. See log for more details.")
             : TypedResults.Ok(result);
     }
+
     private static IResult UpdateMemberRequest(MembersService membersService, CreateMemberRequest request, int MemberId)
     {
         if (string.IsNullOrWhiteSpace(request.MemberName))
@@ -58,7 +59,7 @@ public static class MembersEndpoints
         if (!validTypes.Contains(request.MemberType, StringComparer.OrdinalIgnoreCase))
             return TypedResults.BadRequest("MemberType must be either 'Premium' or 'Regular'.");
 
-        var result = membersService.UpdateMemberRequest(request,MemberId);
+        var result = membersService.UpdateMemberRequest(request, MemberId);
         return result is null
             ? TypedResults.Problem("There was some problem. See log for more details.")
             : TypedResults.Ok(result);

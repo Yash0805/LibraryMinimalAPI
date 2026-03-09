@@ -29,6 +29,7 @@ public static class BooksEndpoints
         var Book = booksService.GetBooksById(BookId);
         return Book is null ? TypedResults.NotFound() : TypedResults.Ok(Book);
     }
+
     private static IResult CreateBooksRequest(BooksService booksService, CreateBooksRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.BookName))
@@ -42,5 +43,4 @@ public static class BooksEndpoints
             ? TypedResults.Problem("There was some problem. See log for more details.")
             : TypedResults.Ok(result);
     }
-
 }

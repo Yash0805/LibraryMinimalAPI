@@ -33,10 +33,9 @@ public static class CategoryEndpoints
     {
         if (string.IsNullOrWhiteSpace(request.CategoryName))
             return TypedResults.BadRequest("Category Name is required.");
-        var result = categoryService.CreateCategoryRequest(request); 
+        var result = categoryService.CreateCategoryRequest(request);
         return result is null
             ? TypedResults.Problem("There was some problem. See log for more details.")
             : TypedResults.Ok(result);
     }
-
 }

@@ -32,24 +32,39 @@ public static class BookIssueEndpoints
 
     private static IResult CreateBookIssueRequest(BookIssueService bookIssueservice, CreateBookIssueRequest request)
     {
+        var validTypes = new[] { "Issued", "Returned", "Renewed" };
+        if (!validTypes.Contains(request.Status, StringComparer.OrdinalIgnoreCase))
+            return TypedResults.BadRequest("Status must be either 'Issued' or 'Returned' or 'Renewed'.");
+
         var result = bookIssueservice.CreateBookIssueRequest(request);
         return result is null
-           ? TypedResults.Problem("There was some problem. See log for more details.")
-           : TypedResults.Ok(result);
+            ? TypedResults.Problem("There was some problem. See log for more details.")
+            : TypedResults.Ok(result);
     }
-    private static IResult PatchBookIssueRequest(BookIssueService bookIssueservice, PatchBookIssueRequest request, int IssueId )
+
+    private static IResult PatchBookIssueRequest(BookIssueService bookIssueservice, PatchBookIssueRequest request,
+        int IssueId)
     {
-        var result = bookIssueservice.PatchBookIssueRequest(request,IssueId);
+        var validTypes = new[] { "Issued", "Returned", "Renewed" };
+        if (!validTypes.Contains(request.Status, StringComparer.OrdinalIgnoreCase))
+            return TypedResults.BadRequest("Status must be either 'Issued' or 'Returned' or 'Renewed'.");
+
+        var result = bookIssueservice.PatchBookIssueRequest(request, IssueId);
         return result is null
-        ? TypedResults.Problem("There was some problem. See log for more details.")
-        : TypedResults.Ok(result);
+            ? TypedResults.Problem("There was some problem. See log for more details.")
+            : TypedResults.Ok(result);
     }
-    private static IResult PatchRenewedBookIssueRequest(BookIssueService bookIssueservice, PatchRenewedBookIssueRequest request, int IssueId)
+
+    private static IResult PatchRenewedBookIssueRequest(BookIssueService bookIssueservice,
+        PatchRenewedBookIssueRequest request, int IssueId)
     {
+        var validTypes = new[] { "Issued", "Returned", "Renewed" };
+        if (!validTypes.Contains(request.Status, StringComparer.OrdinalIgnoreCase))
+            return TypedResults.BadRequest("Status must be either 'Issued' or 'Returned' or 'Renewed'.");
+
         var result = bookIssueservice.PatchRenewedBookIssueRequest(request, IssueId);
         return result is null
-        ? TypedResults.Problem("There was some problem. See log for more details.")
-        : TypedResults.Ok(result);
+            ? TypedResults.Problem("There was some problem. See log for more details.")
+            : TypedResults.Ok(result);
     }
 }
-
