@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System.Net.NetworkInformation;
 
 namespace LibraryManagementSystem.Services;
 
@@ -125,6 +126,52 @@ public sealed class BookIssueService
             var bookIssue = _dbContext.BookIssue.Find(IssueId);
             if (bookIssue is null) throw new Exception($"book issue with id {IssueId} not found");
             bookIssue.Status = request.Status;
+            _dbContext.SaveChanges();
+
+
+            var BookIssueDto = new BookIssueDto(
+                bookIssue.IssueId,
+                 _dbContext.Members
+                    .Where(m => m.MemberId == bookIssue.MemberId)
+                    .Select(m => m.MemberName)
+                    .FirstOrDefault() ?? string.Empty,
+                 _dbContext.Members
+                    .Where(m => m.MemberId == bookIssue.MemberId)
+                    .Select(m => m.MemberType)
+                    .FirstOrDefault() ?? string.Empty,
+                 _dbContext.Books
+                    .Where(b => b.BookId == bookIssue.BookId)
+                    .Select(b => b.BookName)
+                    .FirstOrDefault() ?? string.Empty,
+                bookIssue.IssueDate,
+                bookIssue.ReturnDate,
+                bookIssue.RenewCount,
+                bookIssue.RenewDate,
+                bookIssue.Status
+                );
+            return BookIssueDto;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Database error while patching Issue Book with id {IssueId}", IssueId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while patching Issue Book with id  {IssueId}", IssueId);
+        }
+        return null;
+    }
+
+    public BookIssueDto? PatchRenewedBookIssueRequest(PatchRenewedBookIssueRequest request, int IssueId)
+    {
+        try
+        {
+            var bookIssue = _dbContext.BookIssue.Find(IssueId);
+            if (bookIssue is null) throw new Exception($"book issue with id {IssueId} not found");
+            bookIssue.ReturnDate = request.ReturnDate;
+                bookIssue.RenewCount = request.RenewCount;
+                bookIssue.RenewDate = request.RenewDate; 
+                bookIssue.Status = request.Status;
             _dbContext.SaveChanges();
 
 
