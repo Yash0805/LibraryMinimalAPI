@@ -32,10 +32,6 @@ public static class BookIssueEndpoints
 
     private static IResult CreateBookIssueRequest(BookIssueService bookIssueservice, CreateBookIssueRequest request)
     {
-        var validTypes = new[] { "Issued", "Returned", "Renewed" };
-        if (!validTypes.Contains(request.Status, StringComparer.OrdinalIgnoreCase))
-            return TypedResults.BadRequest("Status must be either 'Issued' or 'Returned' or 'Renewed'.");
-
         var result = bookIssueservice.CreateBookIssueRequest(request);
         return result is null
             ? TypedResults.Problem("There was some problem. See log for more details.")

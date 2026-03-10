@@ -14,9 +14,10 @@ public sealed class BookIssueService
     private readonly AppDbContext _dbContext;
     private readonly ILogger<BookIssueService> _logger;
 
-    public BookIssueService(AppDbContext dbContext)
+    public BookIssueService(AppDbContext dbContext, ILogger<BookIssueService> logger)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public IEnumerable<BookIssueDto> GetBookIssueList(string? MemberName = null)
@@ -44,6 +45,30 @@ public sealed class BookIssueService
             ))
             .ToList();
         return bookIssues;
+    }
+    private BookIssueDto BookView(BookIssue bookIssue)
+    {
+        var member = _dbContext.Members
+            .Where(m => m.MemberId == bookIssue.MemberId)
+            .Select(m => new { m.MemberName, m.MemberType })
+            .FirstOrDefault();
+
+        var bookName = _dbContext.Books
+            .Where(b => b.BookId == bookIssue.BookId)
+            .Select(b => b.BookName)
+            .FirstOrDefault();
+
+        return new BookIssueDto(
+            bookIssue.IssueId,
+            member?.MemberName ?? string.Empty,
+            member?.MemberType ?? string.Empty,
+            bookName ?? string.Empty,
+            bookIssue.IssueDate,
+            bookIssue.ReturnDate,
+            bookIssue.RenewCount,
+            bookIssue.RenewDate,
+            bookIssue.Status
+        );
     }
 
     public BookIssueDto? GetBookIssueById(int IssueId)
@@ -73,37 +98,12 @@ public sealed class BookIssueService
             {
                 MemberId = request.MemberId,
                 BookId = request.BookId,
-                IssueDate = request.IssueDate,
-                ReturnDate = request.ReturnDate,
-                RenewCount = request.RenewCount,
-                RenewDate = request.RenewDate,  
-                Status = request.Status
+                IssueDate = DateOnly.FromDateTime(DateTime.Today),
+                ReturnDate = DateOnly.FromDateTime(DateTime.Today).AddDays(15),
             };
             _dbContext.BookIssue.Add(bookIssue);
             _dbContext.SaveChanges();
-
-      
-            var BookIssueDto = new BookIssueDto(
-                bookIssue.IssueId,
-                 _dbContext.Members
-                    .Where(m => m.MemberId == bookIssue.MemberId)
-                    .Select(m => m.MemberName)
-                    .FirstOrDefault() ?? string.Empty,
-                 _dbContext.Members
-                    .Where(m => m.MemberId == bookIssue.MemberId)
-                    .Select(m => m.MemberType)
-                    .FirstOrDefault() ?? string.Empty,
-                 _dbContext.Books
-                    .Where(b => b.BookId == bookIssue.BookId)
-                    .Select(b=> b.BookName)
-                    .FirstOrDefault() ?? string.Empty,
-                bookIssue.IssueDate,
-                bookIssue.ReturnDate,
-                bookIssue.RenewCount,
-                bookIssue.RenewDate,
-                bookIssue.Status
-                );
-            return BookIssueDto;
+            return BookView(bookIssue);
         }
         catch (DbUpdateException ex)
         {
@@ -127,29 +127,7 @@ public sealed class BookIssueService
             if (bookIssue is null) throw new Exception($"book issue with id {IssueId} not found");
             bookIssue.Status = request.Status;
             _dbContext.SaveChanges();
-
-
-            var BookIssueDto = new BookIssueDto(
-                bookIssue.IssueId,
-                 _dbContext.Members
-                    .Where(m => m.MemberId == bookIssue.MemberId)
-                    .Select(m => m.MemberName)
-                    .FirstOrDefault() ?? string.Empty,
-                 _dbContext.Members
-                    .Where(m => m.MemberId == bookIssue.MemberId)
-                    .Select(m => m.MemberType)
-                    .FirstOrDefault() ?? string.Empty,
-                 _dbContext.Books
-                    .Where(b => b.BookId == bookIssue.BookId)
-                    .Select(b => b.BookName)
-                    .FirstOrDefault() ?? string.Empty,
-                bookIssue.IssueDate,
-                bookIssue.ReturnDate,
-                bookIssue.RenewCount,
-                bookIssue.RenewDate,
-                bookIssue.Status
-                );
-            return BookIssueDto;
+            return BookView(bookIssue);
         }
         catch (DbUpdateException ex)
         {
@@ -173,29 +151,7 @@ public sealed class BookIssueService
                 bookIssue.RenewDate = request.RenewDate; 
                 bookIssue.Status = request.Status;
             _dbContext.SaveChanges();
-
-
-            var BookIssueDto = new BookIssueDto(
-                bookIssue.IssueId,
-                 _dbContext.Members
-                    .Where(m => m.MemberId == bookIssue.MemberId)
-                    .Select(m => m.MemberName)
-                    .FirstOrDefault() ?? string.Empty,
-                 _dbContext.Members
-                    .Where(m => m.MemberId == bookIssue.MemberId)
-                    .Select(m => m.MemberType)
-                    .FirstOrDefault() ?? string.Empty,
-                 _dbContext.Books
-                    .Where(b => b.BookId == bookIssue.BookId)
-                    .Select(b => b.BookName)
-                    .FirstOrDefault() ?? string.Empty,
-                bookIssue.IssueDate,
-                bookIssue.ReturnDate,
-                bookIssue.RenewCount,
-                bookIssue.RenewDate,
-                bookIssue.Status
-                );
-            return BookIssueDto;
+            return BookView(bookIssue);
         }
         catch (DbUpdateException ex)
         {

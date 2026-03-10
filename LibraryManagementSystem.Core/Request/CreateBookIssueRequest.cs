@@ -8,10 +8,7 @@ namespace LibraryManagementSystem.Core.Request
     {
         public int MemberId { get; set; }
         public int BookId { get; set; }
-        public required DateOnly IssueDate { get; set; }
-        public required DateOnly ReturnDate { get; set; }
-        public int RenewCount { get; set; }
-        public DateOnly? RenewDate { get; set; }
-        public string Status { get; set; } 
+        public DateOnly IssueDate { get; set; }
+        public DateOnly ReturnDate { get; set; } 
     }
 }
