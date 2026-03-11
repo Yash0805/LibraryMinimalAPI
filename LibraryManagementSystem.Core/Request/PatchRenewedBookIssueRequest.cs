@@ -6,9 +6,9 @@ namespace LibraryManagementSystem.Core.Request
 {
     public class PatchRenewedBookIssueRequest
     {
-        public required DateOnly ReturnDate { get; set; }
-        public required int RenewCount { get; set; }
-        public required DateOnly RenewDate { get; set; }
-        public required string Status { get; set; }
+        public DateOnly ReturnDate { get; set; }
+        public int RenewCount { get; set; }
+        public DateOnly RenewDate { get; set; }
+        public string Status { get; set; }
     }
 }

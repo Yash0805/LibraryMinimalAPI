@@ -46,7 +46,28 @@ public sealed class BookIssueService
             .ToList();
         return bookIssues;
     }
-    private BookIssueDto BookView(BookIssue bookIssue)
+   
+
+    public BookIssueDto? GetBookIssueById(int IssueId)
+    {
+        var BookIssue = _dbContext.BookIssue
+            .Include(b => b.Book)
+            .Include(m => m.Member)
+            .FirstOrDefault(bi => bi.IssueId == IssueId);
+        if (BookIssue is null) return null;
+        return new BookIssueDto(
+            BookIssue.IssueId,
+            BookIssue.Member.MemberName,
+            BookIssue.Member.MemberType,
+            BookIssue.Book.BookName,
+            BookIssue.IssueDate,
+            BookIssue.ReturnDate,
+            BookIssue.RenewCount,
+            BookIssue.RenewDate,
+            BookIssue.Status
+        );
+    }
+    public BookIssueDto BookView(BookIssue bookIssue)
     {
         var member = _dbContext.Members
             .Where(m => m.MemberId == bookIssue.MemberId)
@@ -68,26 +89,6 @@ public sealed class BookIssueService
             bookIssue.RenewCount,
             bookIssue.RenewDate,
             bookIssue.Status
-        );
-    }
-
-    public BookIssueDto? GetBookIssueById(int IssueId)
-    {
-        var BookIssue = _dbContext.BookIssue
-            .Include(b => b.Book)
-            .Include(m => m.Member)
-            .FirstOrDefault(bi => bi.IssueId == IssueId);
-        if (BookIssue is null) return null;
-        return new BookIssueDto(
-            BookIssue.IssueId,
-            BookIssue.Member.MemberName,
-            BookIssue.Member.MemberType,
-            BookIssue.Book.BookName,
-            BookIssue.IssueDate,
-            BookIssue.ReturnDate,
-            BookIssue.RenewCount,
-            BookIssue.RenewDate,
-            BookIssue.Status
         );
     }
     public BookIssueDto? CreateBookIssueRequest(CreateBookIssueRequest request)
@@ -121,46 +122,48 @@ public sealed class BookIssueService
 
     public BookIssueDto? PatchBookIssueRequest(PatchBookIssueRequest request, int IssueId)
     {
-        try
-        {
-            var bookIssue = _dbContext.BookIssue.Find(IssueId);
-            if (bookIssue is null) throw new Exception($"book issue with id {IssueId} not found");
-            bookIssue.Status = request.Status;
-            _dbContext.SaveChanges();
-            return BookView(bookIssue);
-        }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Database error while patching Issue Book with id {IssueId}", IssueId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while patching Issue Book with id  {IssueId}", IssueId);
-        }
-        return null;
+        var bookIssue = _dbContext.BookIssue.Find(IssueId);
+        if (bookIssue is null)
+            throw new Exception($"Book issue with id {IssueId} not found");
+        bookIssue.Status = "Returned";
+        _dbContext.SaveChanges();
+        return BookView(bookIssue);
+        //try
+        //{
+        //    var bookIssue = _dbContext.BookIssue.Find(IssueId);
+        //    if (bookIssue is null) throw new Exception($"book issue with id {IssueId} not found");
+        //    bookIssue.Status = "Returned";
+        //    _dbContext.SaveChanges();
+        //    return BookView(bookIssue);
+        //}
+        //catch (DbUpdateException ex)
+        //{
+        //    _logger.LogError(ex, "Database error while patching Issue Book with id {IssueId}", IssueId);
+        //}
+        //catch (Exception ex)
+        //{
+        //    _logger.LogError(ex, "Unexpected error while patching Issue Book with id  {IssueId}", IssueId);
+        //}
+        //return null;
     }
 
-    public BookIssueDto? PatchRenewedBookIssueRequest(PatchRenewedBookIssueRequest request, int IssueId)
+    public BookIssueDto PatchRenewedBookIssueRequest(PatchRenewedBookIssueRequest request, int IssueId)
     {
-        try
-        {
-            var bookIssue = _dbContext.BookIssue.Find(IssueId);
-            if (bookIssue is null) throw new Exception($"book issue with id {IssueId} not found");
-            bookIssue.ReturnDate = request.ReturnDate;
-                bookIssue.RenewCount = request.RenewCount;
-                bookIssue.RenewDate = request.RenewDate; 
-                bookIssue.Status = request.Status;
-            _dbContext.SaveChanges();
-            return BookView(bookIssue);
-        }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Database error while patching Issue Book with id {IssueId}", IssueId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while patching Issue Book with id  {IssueId}", IssueId);
-        }
-        return null;
+        var bookIssue = _dbContext.BookIssue.Find(IssueId);
+
+        if (bookIssue is null)
+            throw new Exception($"Book issue with id {IssueId} not found");
+
+        if (bookIssue.RenewCount >= 1)
+            throw new Exception("Renewal limit reached. Book can only be renewed 1 time.");
+
+        bookIssue.ReturnDate = DateOnly.FromDateTime(DateTime.Today).AddDays(15);
+        bookIssue.RenewCount += 1;
+        bookIssue.RenewDate = DateOnly.FromDateTime(DateTime.Today);
+        bookIssue.Status = "Renewed";
+
+        _dbContext.SaveChanges();
+
+        return BookView(bookIssue);
     }
 }

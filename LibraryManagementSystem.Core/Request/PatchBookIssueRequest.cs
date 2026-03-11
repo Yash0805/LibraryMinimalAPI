@@ -6,6 +6,6 @@ namespace LibraryManagementSystem.Core.Request
 {
     public class PatchBookIssueRequest
     {
-        public required string Status {  get; set; }
+        public string Status {  get; set; }
     }
 }
