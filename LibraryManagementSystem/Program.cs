@@ -18,6 +18,7 @@ builder.Services
     .AddScoped<CategoryService>()
     .AddScoped<BooksService>()
     .AddScoped<BookIssueService>();
+builder.Services.AddCors();
 
 WebApplication app = builder.Build();
 
@@ -27,9 +28,17 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+
+app.UseCors(option =>
+{
+    option.AllowAnyHeader();
+    option.AllowAnyMethod();
+    option.AllowAnyOrigin();
+});
 
 RouteGroupBuilder apigroup = app.MapGroup("api");
+
 apigroup.MapMembersEndpoints();
 apigroup.MapCategoryEndpoints();
 apigroup.MapBooksEndpoints();
