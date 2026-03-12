@@ -16,8 +16,7 @@ public sealed class MembersEntityConfigurations : IEntityTypeConfiguration<Membe
             .IsRequired();
 
         builder.Property(m => m.MemberType)
-               .IsRequired()
-               .HasMaxLength(20);
-        
+            .IsRequired()
+            .HasMaxLength(20);
     }
 }

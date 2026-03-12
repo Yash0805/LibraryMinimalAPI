@@ -1,10 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LibraryManagementSystem.Persistence.Configurations;
+
 public sealed class BooksEntityConfiguration : IEntityTypeConfiguration<Books>
 {
     public void Configure(EntityTypeBuilder<Books> builder)
@@ -22,11 +20,11 @@ public sealed class BooksEntityConfiguration : IEntityTypeConfiguration<Books>
             .IsRequired();
 
         builder.Property(b => b.Author)
-            .HasMaxLength (100)
+            .HasMaxLength(100)
             .IsRequired();
 
         builder.Property(b => b.Price)
-            .HasPrecision(10,2)
+            .HasPrecision(10, 2)
             .IsRequired();
 
         builder.HasOne(c => c.Category)

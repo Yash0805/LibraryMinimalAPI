@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using LibraryManagementSystem.Core.Dtos;
+﻿using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Core.Request;
 using LibraryManagementSystem.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -21,19 +20,19 @@ public static class BookIssueEndpoints
 
     private static Ok<IEnumerable<BookIssueDto>> GetBookIssueList(BookIssueService bookIssueService, string? MemberName)
     {
-        var bookIssues = bookIssueService.GetBookIssueList(MemberName);
+        IEnumerable<BookIssueDto> bookIssues = bookIssueService.GetBookIssueList(MemberName);
         return TypedResults.Ok(bookIssues);
     }
 
     public static IResult GetBookIssueById(BookIssueService bookIssueservice, int IssueId)
     {
-        var bookIssues = bookIssueservice.GetBookIssueById(IssueId);
+        BookIssueDto? bookIssues = bookIssueservice.GetBookIssueById(IssueId);
         return bookIssues is null ? TypedResults.NotFound() : TypedResults.Ok(bookIssues);
     }
 
     private static IResult CreateBookIssueRequest(BookIssueService bookIssueservice, CreateBookIssueRequest request)
     {
-        var result = bookIssueservice.CreateBookIssueRequest(request);
+        BookIssueDto? result = bookIssueservice.CreateBookIssueRequest(request);
         return result is null
             ? TypedResults.Problem("There was some problem. See log for more details.")
             : TypedResults.Ok(result);
@@ -42,32 +41,21 @@ public static class BookIssueEndpoints
     private static IResult PatchBookIssueRequest(BookIssueService bookIssueservice, PatchBookIssueRequest request,
         int IssueId)
     {
-        try
-        {
-            var result = bookIssueservice.PatchBookIssueRequest(request, IssueId);
-            return TypedResults.Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return TypedResults.BadRequest(ex.Message);
-        }
+        BookIssueDto? result = bookIssueservice.PatchBookIssueRequest(request, IssueId);
 
+        return result is null
+            ? TypedResults.NotFound()
+            : TypedResults.Ok(result);
     }
 
     private static IResult PatchRenewedBookIssueRequest(
-    BookIssueService bookIssueService,
-    int IssueId,
-    PatchRenewedBookIssueRequest request)
+        BookIssueService bookIssueService,
+        int IssueId,
+        PatchRenewedBookIssueRequest request)
     {
-        try
-        {
-            var result = bookIssueService.PatchRenewedBookIssueRequest(request, IssueId);
-            return TypedResults.Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return TypedResults.BadRequest(ex.Message);
-        }
+        BookIssueDto? result = bookIssueService.PatchRenewedBookIssueRequest(request, IssueId);
+        return result is null
+            ? TypedResults.NotFound()
+            : TypedResults.Ok(result);
     }
-
 }

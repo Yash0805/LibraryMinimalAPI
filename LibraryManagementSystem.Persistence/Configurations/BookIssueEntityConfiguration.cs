@@ -1,10 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LibraryManagementSystem.Persistence.Configurations;
+
 public sealed class BookIssueEntityConfiguration : IEntityTypeConfiguration<BookIssue>
 {
     public void Configure(EntityTypeBuilder<BookIssue> builder)
@@ -13,14 +11,14 @@ public sealed class BookIssueEntityConfiguration : IEntityTypeConfiguration<Book
         builder.HasKey(bi => bi.IssueId);
 
         builder.HasOne(m => m.Member)
-        .WithMany(b => b.BookIssue)
-        .HasForeignKey(m => m.MemberId)
-        .OnDelete(DeleteBehavior.Restrict);
+            .WithMany(b => b.BookIssue)
+            .HasForeignKey(m => m.MemberId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(b => b.Book)
-        .WithMany(b => b.BookIssue)
-        .HasForeignKey(b => b.BookId)
-         .OnDelete(DeleteBehavior.Restrict);
+            .WithMany(b => b.BookIssue)
+            .HasForeignKey(b => b.BookId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(bi => bi.IssueDate)
             .IsRequired();
@@ -33,8 +31,5 @@ public sealed class BookIssueEntityConfiguration : IEntityTypeConfiguration<Book
             .IsRequired()
             .HasDefaultValue("Issued")
             .HasMaxLength(20);
-
-      
     }
 }
-

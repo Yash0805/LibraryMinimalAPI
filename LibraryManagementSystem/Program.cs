@@ -3,7 +3,7 @@ using LibraryManagementSystem.Services;
 using LibraryManagementSystem.Web.Endpoints;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -19,14 +19,17 @@ builder.Services
     .AddScoped<BooksService>()
     .AddScoped<BookIssueService>();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment()) app.MapOpenApi();
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
 
 app.UseHttpsRedirection();
 
-var apigroup = app.MapGroup("api");
+RouteGroupBuilder apigroup = app.MapGroup("api");
 apigroup.MapMembersEndpoints();
 apigroup.MapCategoryEndpoints();
 apigroup.MapBooksEndpoints();

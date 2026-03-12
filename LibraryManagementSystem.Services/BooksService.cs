@@ -3,8 +3,6 @@ using LibraryManagementSystem.Core.Request;
 using LibraryManagementSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.ObjectModel;
-using System.Net;
 
 namespace LibraryManagementSystem.Services;
 
@@ -25,8 +23,9 @@ public sealed class BooksService
         {
             query = query.Where(b => b.BookName.Contains(BookName));
         }
+
         IReadOnlyList<BooksDto> Books = query
-            .Include (c => c.Category)
+            .Include(c => c.Category)
             .Select
             (b => new BooksDto
             (
@@ -43,10 +42,14 @@ public sealed class BooksService
 
     public BooksDto? GetBooksById(int BookId)
     {
-        var Book = _dbContext.Books
+        Books? Book = _dbContext.Books
             .Include(c => c.Category)
             .FirstOrDefault(b => b.BookId == BookId);
-        if (Book is null) return null;
+        if (Book is null)
+        {
+            return null;
+        }
+
         return new BooksDto(
             Book.BookId,
             Book.BookName,
@@ -55,14 +58,13 @@ public sealed class BooksService
             Book.Price,
             Book.Category.CategoryName
         );
-
     }
 
-    public BooksDto? CreateBooksRequest (CreateBooksRequest request)
+    public BooksDto? CreateBooksRequest(CreateBooksRequest request)
     {
         try
         {
-            var Book = new Books
+            Books Book = new()
             {
                 BookName = request.BookName,
                 Publisher = request.Publisher,
@@ -73,17 +75,17 @@ public sealed class BooksService
             _dbContext.Books.Add(Book);
             _dbContext.SaveChanges();
 
-            var BooksDto = new BooksDto(
+            BooksDto BooksDto = new(
                 Book.BookId,
                 Book.BookName,
                 Book.Publisher,
                 Book.Author,
                 Book.Price,
-                 _dbContext.Category
-                 .Where(c => c.CategoryId == Book.CategoryId)
-                 .Select(c => c.CategoryName)
-                 .FirstOrDefault() ?? string.Empty
-                 );
+                _dbContext.Category
+                    .Where(c => c.CategoryId == Book.CategoryId)
+                    .Select(c => c.CategoryName)
+                    .FirstOrDefault() ?? string.Empty
+            );
             return BooksDto;
         }
         catch (DbUpdateException ex)
@@ -95,8 +97,9 @@ public sealed class BooksService
         {
             _logger.LogError(ex,
                 "Unexpected error while creating Books for Books name {BookName} ",
-               request.BookName);
+                request.BookName);
         }
+
         return null;
     }
 }

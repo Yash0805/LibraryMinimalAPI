@@ -1,8 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LibraryManagementSystem.Persistence.Configurations;
 
@@ -18,4 +15,3 @@ public sealed class CategoryEntityConfigurations : IEntityTypeConfiguration<Cate
             .IsRequired();
     }
 }
-

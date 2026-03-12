@@ -14,5 +14,5 @@ public sealed class BookIssue
     public DateOnly? RenewDate { get; set; }
     public string Status { get; set; }
     public Members Member { get; set; }
-    public  Books Book { get; set; }
+    public Books Book { get; set; }
 }

@@ -31,8 +31,12 @@ public sealed class CategoryService
 
     public CategoryDto? GetCategoryByID(int CategoryId)
     {
-        var Category = _dbContext.Category.FirstOrDefault(c => c.CategoryId == CategoryId);
-        if (Category is null) return null;
+        Category? Category = _dbContext.Category.FirstOrDefault(c => c.CategoryId == CategoryId);
+        if (Category is null)
+        {
+            return null;
+        }
+
         return new CategoryDto(
             Category.CategoryId,
             Category.CategoryName);
@@ -42,14 +46,11 @@ public sealed class CategoryService
     {
         try
         {
-            var Category = new Category
-            {
-                CategoryName = request.CategoryName
-            };
+            Category Category = new() { CategoryName = request.CategoryName };
             _dbContext.Category.Add(Category);
             _dbContext.SaveChanges();
 
-            var CategoryDto = new CategoryDto(
+            CategoryDto CategoryDto = new(
                 Category.CategoryId,
                 Category.CategoryName);
             return CategoryDto;
@@ -63,8 +64,9 @@ public sealed class CategoryService
         {
             _logger.LogError(ex,
                 "Unexpected error while creating category for category name {CategoryName} ",
-               request.CategoryName);
+                request.CategoryName);
         }
+
         return null;
     }
 }

@@ -1,6 +1,5 @@
 ﻿using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Core.Request;
-using LibraryManagementSystem.Persistence;
 using LibraryManagementSystem.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -20,28 +19,35 @@ public static class MembersEndpoints
 
     private static Ok<IEnumerable<MembersDto>> GetMembers(MembersService memberService)
     {
-        var Members = memberService.GetMembersList();
+        IEnumerable<MembersDto> Members = memberService.GetMembersList();
         return TypedResults.Ok(Members);
     }
 
     private static IResult GetMembersById(MembersService membersService, int MemberId)
     {
-        var Members = membersService.GetMembersById(MemberId);
+        MembersDto? Members = membersService.GetMembersById(MemberId);
         return Members is null ? TypedResults.NotFound() : TypedResults.Ok(Members);
     }
 
     private static IResult CreateMemberRequest(MembersService membersService, CreateMemberRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.MemberName))
+        {
             return TypedResults.BadRequest("MemberName is required.");
+        }
+
         if (string.IsNullOrWhiteSpace(request.MemberType))
+        {
             return TypedResults.BadRequest("MemberType is required.");
+        }
 
-        var validTypes = new[] { "Premium", "Regular" };
+        string[] validTypes = new[] { "Premium", "Regular" };
         if (!validTypes.Contains(request.MemberType, StringComparer.OrdinalIgnoreCase))
+        {
             return TypedResults.BadRequest("MemberType must be either 'Premium' or 'Regular'.");
+        }
 
-        var result = membersService.CreateMemberRequest(request);
+        MembersDto? result = membersService.CreateMemberRequest(request);
         return result is null
             ? TypedResults.Problem("There was some problem. See log for more details.")
             : TypedResults.Ok(result);
@@ -50,16 +56,22 @@ public static class MembersEndpoints
     private static IResult UpdateMemberRequest(MembersService membersService, CreateMemberRequest request, int MemberId)
     {
         if (string.IsNullOrWhiteSpace(request.MemberName))
+        {
             return TypedResults.BadRequest("MemberName is required.");
+        }
 
         if (string.IsNullOrWhiteSpace(request.MemberType))
+        {
             return TypedResults.BadRequest("MemberType is required.");
+        }
 
-        var validTypes = new[] { "Premium", "Regular" };
+        string[] validTypes = new[] { "Premium", "Regular" };
         if (!validTypes.Contains(request.MemberType, StringComparer.OrdinalIgnoreCase))
+        {
             return TypedResults.BadRequest("MemberType must be either 'Premium' or 'Regular'.");
+        }
 
-        var result = membersService.UpdateMemberRequest(request, MemberId);
+        MembersDto? result = membersService.UpdateMemberRequest(request, MemberId);
         return result is null
             ? TypedResults.Problem("There was some problem. See log for more details.")
             : TypedResults.Ok(result);

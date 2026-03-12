@@ -1,11 +1,8 @@
-﻿using LibraryManagementSystem.Core.Dtos;
+using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Core.Request;
 using LibraryManagementSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using System.Net.NetworkInformation;
 
 namespace LibraryManagementSystem.Services;
 
@@ -23,12 +20,13 @@ public sealed class BookIssueService
     public IEnumerable<BookIssueDto> GetBookIssueList(string? MemberName = null)
     {
         IQueryable<BookIssue> query = _dbContext.BookIssue.AsQueryable();
-        if(!string.IsNullOrEmpty(MemberName))
+        if (!string.IsNullOrWhiteSpace(MemberName))
         {
             query = query.Where(bi => bi.Member.MemberName.Contains(MemberName));
         }
+
         IReadOnlyList<BookIssueDto> bookIssues = query
-            .Include(b=>b.Book)
+            .Include(b => b.Book)
             .Include(m => m.Member)
             .Select
             (bi => new BookIssueDto
@@ -46,15 +44,18 @@ public sealed class BookIssueService
             .ToList();
         return bookIssues;
     }
-   
 
     public BookIssueDto? GetBookIssueById(int IssueId)
     {
-        var BookIssue = _dbContext.BookIssue
+        BookIssue? BookIssue = _dbContext.BookIssue
             .Include(b => b.Book)
             .Include(m => m.Member)
             .FirstOrDefault(bi => bi.IssueId == IssueId);
-        if (BookIssue is null) return null;
+        if (BookIssue is null)
+        {
+            return null;
+        }
+
         return new BookIssueDto(
             BookIssue.IssueId,
             BookIssue.Member.MemberName,
@@ -67,23 +68,14 @@ public sealed class BookIssueService
             BookIssue.Status
         );
     }
+
     public BookIssueDto BookView(BookIssue bookIssue)
     {
-        var member = _dbContext.Members
-            .Where(m => m.MemberId == bookIssue.MemberId)
-            .Select(m => new { m.MemberName, m.MemberType })
-            .FirstOrDefault();
-
-        var bookName = _dbContext.Books
-            .Where(b => b.BookId == bookIssue.BookId)
-            .Select(b => b.BookName)
-            .FirstOrDefault();
-
         return new BookIssueDto(
             bookIssue.IssueId,
-            member?.MemberName ?? string.Empty,
-            member?.MemberType ?? string.Empty,
-            bookName ?? string.Empty,
+            bookIssue.Member.MemberName,
+            bookIssue.Member.MemberType,
+            bookIssue.Book.BookName,
             bookIssue.IssueDate,
             bookIssue.ReturnDate,
             bookIssue.RenewCount,
@@ -91,19 +83,64 @@ public sealed class BookIssueService
             bookIssue.Status
         );
     }
+
     public BookIssueDto? CreateBookIssueRequest(CreateBookIssueRequest request)
     {
         try
         {
-            var bookIssue = new BookIssue
+            Members? members = _dbContext.Members
+                .FirstOrDefault(m => m.MemberId == request.MemberId);
+            if (members == null)
+            {
+                throw new ConflictException($"Member with ID {request.MemberId} not found.", request.MemberId);
+            }
+
+            Books? book = _dbContext.Books
+                .FirstOrDefault(b => b.BookId == request.BookId);
+            if (book == null)
+            {
+                throw new ConflictException($"Book with ID {request.BookId} does not exist.", request.BookId);
+            }
+
+            bool bookAlreadyIssued = _dbContext.BookIssue
+                .Any(b => b.BookId == request.BookId && b.Status != "Returned");
+            if (bookAlreadyIssued)
+            {
+                throw new Exception("This book is already issued to another member.");
+            }
+
+            int issuedBooksCount = _dbContext.BookIssue
+                .Count(b => b.MemberId == request.MemberId && b.Status != "Returned");
+            if (members.MemberType == "Premium" && issuedBooksCount >= 4)
+            {
+                throw new Exception("Premium members can issue maximum 4 books at a time.");
+            }
+
+            if (members.MemberType == "Regular" && issuedBooksCount >= 2)
+            {
+                throw new Exception("Regular members can issue maximum 2 books at a time.");
+            }
+
+            BookIssue bookIssue = new()
             {
                 MemberId = request.MemberId,
                 BookId = request.BookId,
                 IssueDate = DateOnly.FromDateTime(DateTime.Today),
-                ReturnDate = DateOnly.FromDateTime(DateTime.Today).AddDays(15),
+                ReturnDate = DateOnly.FromDateTime(DateTime.Today).AddDays(15)
             };
             _dbContext.BookIssue.Add(bookIssue);
             _dbContext.SaveChanges();
+
+            BookIssue? createdIssue = _dbContext.BookIssue
+                .Include(b => b.Book)
+                .Include(m => m.Member)
+                .FirstOrDefault(b => b.IssueId == bookIssue.IssueId);
+
+            if (createdIssue == null)
+            {
+                return null;
+            }
+
             return BookView(bookIssue);
         }
         catch (DbUpdateException ex)
@@ -115,55 +152,80 @@ public sealed class BookIssueService
         {
             _logger.LogError(ex,
                 "Unexpected error while creating Books Issue for Member Id {MemberId} ",
-               request.MemberId);
+                request.MemberId);
         }
+
         return null;
     }
 
     public BookIssueDto? PatchBookIssueRequest(PatchBookIssueRequest request, int IssueId)
     {
-        var bookIssue = _dbContext.BookIssue.Find(IssueId);
-        if (bookIssue is null)
-            throw new Exception($"Book issue with id {IssueId} not found");
-        bookIssue.Status = "Returned";
-        _dbContext.SaveChanges();
-        return BookView(bookIssue);
-        //try
-        //{
-        //    var bookIssue = _dbContext.BookIssue.Find(IssueId);
-        //    if (bookIssue is null) throw new Exception($"book issue with id {IssueId} not found");
-        //    bookIssue.Status = "Returned";
-        //    _dbContext.SaveChanges();
-        //    return BookView(bookIssue);
-        //}
-        //catch (DbUpdateException ex)
-        //{
-        //    _logger.LogError(ex, "Database error while patching Issue Book with id {IssueId}", IssueId);
-        //}
-        //catch (Exception ex)
-        //{
-        //    _logger.LogError(ex, "Unexpected error while patching Issue Book with id  {IssueId}", IssueId);
-        //}
-        //return null;
+        try
+        {
+            BookIssue? bookIssue = _dbContext.BookIssue
+                .Include(b => b.Book)
+                .Include(m => m.Member)
+                .FirstOrDefault(b => b.IssueId == IssueId);
+
+            if (bookIssue is null)
+            {
+                throw new Exception($"Book issue with id {IssueId} not found");
+            }
+
+            bookIssue.Status = "Returned";
+
+            _dbContext.SaveChanges();
+
+            return BookView(bookIssue);
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Database error while returning book for IssueId {IssueId}", IssueId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while returning book for IssueId {IssueId}", IssueId);
+        }
+
+        return null;
     }
 
     public BookIssueDto PatchRenewedBookIssueRequest(PatchRenewedBookIssueRequest request, int IssueId)
     {
-        var bookIssue = _dbContext.BookIssue.Find(IssueId);
+        try
+        {
+            BookIssue? bookIssue = _dbContext.BookIssue
+                .Include(b => b.Book)
+                .Include(m => m.Member)
+                .FirstOrDefault(b => b.IssueId == IssueId);
+            if (bookIssue is null)
+            {
+                throw new Exception($"Book issue with id {IssueId} not found");
+            }
 
-        if (bookIssue is null)
-            throw new Exception($"Book issue with id {IssueId} not found");
+            if (bookIssue.RenewCount >= 1)
+            {
+                throw new Exception("Renewal limit reached. Book can only be renewed 1 time.");
+            }
 
-        if (bookIssue.RenewCount >= 1)
-            throw new Exception("Renewal limit reached. Book can only be renewed 1 time.");
+            bookIssue.ReturnDate = DateOnly.FromDateTime(DateTime.Today).AddDays(15);
+            bookIssue.RenewCount += 1;
+            bookIssue.RenewDate = DateOnly.FromDateTime(DateTime.Today);
+            bookIssue.Status = "Renewed";
 
-        bookIssue.ReturnDate = DateOnly.FromDateTime(DateTime.Today).AddDays(15);
-        bookIssue.RenewCount += 1;
-        bookIssue.RenewDate = DateOnly.FromDateTime(DateTime.Today);
-        bookIssue.Status = "Renewed";
+            _dbContext.SaveChanges();
 
-        _dbContext.SaveChanges();
+            return BookView(bookIssue);
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Database error while creating book for IssueId {IssueId}", IssueId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while returning book for IssueId {IssueId}", IssueId);
+        }
 
-        return BookView(bookIssue);
+        return null;
     }
 }
