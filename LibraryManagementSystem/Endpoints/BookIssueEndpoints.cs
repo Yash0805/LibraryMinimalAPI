@@ -1,5 +1,6 @@
-﻿using LibraryManagementSystem.Core.Dtos;
+using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Core.Request;
+using LibraryManagementSystem.Persistence;
 using LibraryManagementSystem.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -12,6 +13,8 @@ public static class BookIssueEndpoints
         ArgumentNullException.ThrowIfNull(endpoint);
         endpoint.MapGet("BookIssue", GetBookIssueList);
         endpoint.MapGet("BookIssue/{IssueId:int}", GetBookIssueById);
+        endpoint.MapGet("BookIssue/IssueDate/{IssueDate}", GetBookByIssueDate);
+        endpoint.MapGet("BookIssue/ReturnDate/{ReturnDate}", GetBookByReturnDate);
         endpoint.MapPost("BookIssue", CreateBookIssueRequest);
         endpoint.MapPatch("BookIssue/{IssueId:int}", PatchBookIssueRequest);
         endpoint.MapPatch("BookIssue/Renewed/{IssueId:int}", PatchRenewedBookIssueRequest);
@@ -28,6 +31,18 @@ public static class BookIssueEndpoints
     {
         BookIssueDto? bookIssues = bookIssueservice.GetBookIssueById(IssueId);
         return bookIssues is null ? TypedResults.NotFound() : TypedResults.Ok(bookIssues);
+    }
+
+    public static IResult GetBookByIssueDate(BookIssueService bookIssueService,DateOnly IssueDate)
+    {
+        IEnumerable<BookIssueDto> BookIssue = bookIssueService.GetBookByIssueDate(IssueDate);
+        return BookIssue is null ? TypedResults.NotFound() : TypedResults.Ok(BookIssue);
+    }
+
+    public static IResult GetBookByReturnDate(BookIssueService bookIssueService,DateOnly ReturnDate)
+    {
+        IEnumerable<BookIssueDto> BookIssue = bookIssueService.GetBookByReturnDate(ReturnDate);
+        return BookIssue is null ? TypedResults.NotFound() : TypedResults.Ok(BookIssue);
     }
 
     private static IResult CreateBookIssueRequest(BookIssueService bookIssueservice, CreateBookIssueRequest request)

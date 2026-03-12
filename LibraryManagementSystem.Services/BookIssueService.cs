@@ -69,6 +69,62 @@ public sealed class BookIssueService
         );
     }
 
+    public IEnumerable<BookIssueDto> GetBookByIssueDate(DateOnly? IssueDate)
+    {
+        IQueryable<BookIssue> query = _dbContext.BookIssue.AsQueryable();
+        if (IssueDate.HasValue)
+        {
+            query = query.Where(bi => bi.IssueDate == IssueDate.Value);
+        }
+
+        IReadOnlyList<BookIssueDto> BookIssue = query
+            .Include(b => b.Book)
+            .Include(m => m.Member)
+            .Select
+            (bi => new BookIssueDto
+            (
+                bi.IssueId,
+                bi.Member.MemberName,
+                bi.Member.MemberType,
+                bi.Book.BookName,
+                bi.IssueDate,
+                bi.ReturnDate,
+                bi.RenewCount,
+                bi.RenewDate,
+                bi.Status
+            ))
+            .ToList();
+        return BookIssue;
+    }
+
+    public IEnumerable<BookIssueDto> GetBookByReturnDate(DateOnly? ReturnDate)
+    {
+        IQueryable<BookIssue> query = _dbContext.BookIssue.AsQueryable();
+        if (ReturnDate.HasValue)
+        {
+            query = query.Where(bi => bi.ReturnDate == ReturnDate.Value);
+        }
+
+        IReadOnlyList<BookIssueDto> BookIssue = query
+            .Include(b => b.Book)
+            .Include(m => m.Member)
+            .Select
+            (bi => new BookIssueDto
+            (
+                bi.IssueId,
+                bi.Member.MemberName,
+                bi.Member.MemberType,
+                bi.Book.BookName,
+                bi.IssueDate,
+                bi.ReturnDate,
+                bi.RenewCount,
+                bi.RenewDate,
+                bi.Status
+            ))
+            .ToList();
+        return BookIssue;
+    }
+
     public BookIssueDto BookView(BookIssue bookIssue)
     {
         return new BookIssueDto(
