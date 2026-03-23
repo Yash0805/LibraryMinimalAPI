@@ -1,6 +1,5 @@
 using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Core.Request;
-using LibraryManagementSystem.Persistence;
 using LibraryManagementSystem.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -18,6 +17,8 @@ public static class BookIssueEndpoints
         endpoint.MapPost("BookIssue", CreateBookIssueRequest);
         endpoint.MapPatch("BookIssue/{IssueId:int}", PatchBookIssueRequest);
         endpoint.MapPatch("BookIssue/Renewed/{IssueId:int}", PatchRenewedBookIssueRequest);
+        endpoint.MapDelete("BookIssue/{issueId}", DeleteBookIssue);
+        endpoint.MapPut("BookIssue/{issueId}", UpdateBookIssue);
         return endpoint;
     }
 
@@ -33,13 +34,13 @@ public static class BookIssueEndpoints
         return bookIssues is null ? TypedResults.NotFound() : TypedResults.Ok(bookIssues);
     }
 
-    public static IResult GetBookByIssueDate(BookIssueService bookIssueService,DateOnly IssueDate)
+    public static IResult GetBookByIssueDate(BookIssueService bookIssueService, DateOnly IssueDate)
     {
         IEnumerable<BookIssueDto> BookIssue = bookIssueService.GetBookByIssueDate(IssueDate);
         return BookIssue is null ? TypedResults.NotFound() : TypedResults.Ok(BookIssue);
     }
 
-    public static IResult GetBookByReturnDate(BookIssueService bookIssueService,DateOnly ReturnDate)
+    public static IResult GetBookByReturnDate(BookIssueService bookIssueService, DateOnly ReturnDate)
     {
         IEnumerable<BookIssueDto> BookIssue = bookIssueService.GetBookByReturnDate(ReturnDate);
         return BookIssue is null ? TypedResults.NotFound() : TypedResults.Ok(BookIssue);
@@ -69,6 +70,45 @@ public static class BookIssueEndpoints
         PatchRenewedBookIssueRequest request)
     {
         BookIssueDto? result = bookIssueService.PatchRenewedBookIssueRequest(request, IssueId);
+        return result is null
+            ? TypedResults.NotFound()
+            : TypedResults.Ok(result);
+    }
+
+    private static IResult DeleteBookIssue(BookIssueService service, int issueId)
+    {
+        try
+        {
+            BookIssueDto result = service.DeleteBookIssue(issueId);
+            return TypedResults.Ok(result);
+        }
+        catch (ConflictException)
+        {
+            return TypedResults.NotFound();
+        }
+        catch (Exception ex)
+        {
+            return TypedResults.BadRequest(ex.Message);
+        }
+    }
+
+    private static IResult UpdateBookIssue(
+        BookIssueService bookIssueService,
+        int issueId,
+        CreateBookIssueRequest request)
+    {
+        if (request.MemberId <= 0)
+        {
+            return TypedResults.BadRequest("Valid MemberId is required");
+        }
+
+        if (request.BookId <= 0)
+        {
+            return TypedResults.BadRequest("Valid BookId is required");
+        }
+
+        BookIssueDto? result = bookIssueService.UpdateBookIssue(issueId, request);
+
         return result is null
             ? TypedResults.NotFound()
             : TypedResults.Ok(result);

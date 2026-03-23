@@ -1,4 +1,4 @@
-﻿using LibraryManagementSystem.Core.Dtos;
+using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Core.Request;
 using LibraryManagementSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -109,5 +109,43 @@ public sealed class MembersService
         }
 
         return null;
+    }
+
+    public MembersDto DeleteMemberRequest(int MemberId)
+    {
+        try
+        {
+            Members? member = _dbContext.Members
+                .FirstOrDefault(c => c.MemberId == MemberId);
+
+            if (member is null)
+            {
+                throw new ConflictException($"Member with ID {MemberId} not found.");
+            }
+
+            _dbContext.Members.Remove(member);
+            _dbContext.SaveChanges();
+
+            return new MembersDto(
+                member.MemberId,
+                member.MemberName,
+                member.MemberType
+            );
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "member not found with ID {MemberId}", MemberId);
+            throw;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Database error while deleting member with ID {MemberId}", MemberId);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while deleting member with ID {MemberId}", MemberId);
+            throw;
+        }
     }
 }

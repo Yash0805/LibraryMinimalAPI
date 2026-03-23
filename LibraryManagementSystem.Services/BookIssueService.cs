@@ -284,4 +284,103 @@ public sealed class BookIssueService
 
         return null;
     }
+
+    public BookIssueDto DeleteBookIssue(int issueId)
+    {
+        try
+        {
+            BookIssue? bookIssue = _dbContext.BookIssue
+                .Include(b => b.Book)
+                .Include(m => m.Member)
+                .FirstOrDefault(b => b.IssueId == issueId);
+
+            if (bookIssue is null)
+            {
+                throw new ConflictException($"BookIssue with ID {issueId} not found.");
+            }
+
+            if (bookIssue.Status != "Returned")
+            {
+                throw new Exception("Cannot delete. Book is not returned yet.");
+            }
+
+            _dbContext.BookIssue.Remove(bookIssue);
+            _dbContext.SaveChanges();
+
+            return new BookIssueDto(
+                bookIssue.IssueId,
+                bookIssue.Member.MemberName,
+                bookIssue.Member.MemberType,
+                bookIssue.Book.BookName,
+                bookIssue.IssueDate,
+                bookIssue.ReturnDate,
+                bookIssue.RenewCount,
+                bookIssue.RenewDate,
+                bookIssue.Status
+            );
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "BookIssue not found with ID {IssueId}", issueId);
+            throw;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Database error while deleting BookIssue with ID {IssueId}", issueId);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while deleting BookIssue with ID {IssueId}", issueId);
+            throw;
+        }
+    }
+
+    public BookIssueDto? UpdateBookIssue(int issueId, CreateBookIssueRequest request)
+    {
+        try
+        {
+            BookIssue? bookIssue = _dbContext.BookIssue
+                .Include(b => b.Book)
+                .Include(m => m.Member)
+                .FirstOrDefault(b => b.IssueId == issueId);
+
+            if (bookIssue is null)
+            {
+                _logger.LogWarning("BookIssue not found with ID {IssueId}", issueId);
+                return null;
+            }
+
+            bool memberExists = _dbContext.Members.Any(m => m.MemberId == request.MemberId);
+            if (!memberExists)
+            {
+                throw new Exception($"Member with ID {request.MemberId} not found");
+            }
+
+            bool bookExists = _dbContext.Books.Any(b => b.BookId == request.BookId);
+            if (!bookExists)
+            {
+                throw new Exception($"Book with ID {request.BookId} not found");
+            }
+
+            bookIssue.MemberId = request.MemberId;
+            bookIssue.BookId = request.BookId;
+            bookIssue.IssueDate = request.IssueDate;
+            bookIssue.ReturnDate = request.ReturnDate;
+
+            _dbContext.SaveChanges();
+
+            return BookView(bookIssue);
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Database error while updating BookIssue with ID {IssueId}", issueId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while updating BookIssue with ID {IssueId}", issueId);
+        }
+
+        return null;
+    }
 }

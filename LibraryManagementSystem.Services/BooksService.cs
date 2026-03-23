@@ -1,4 +1,4 @@
-﻿using LibraryManagementSystem.Core.Dtos;
+using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Core.Request;
 using LibraryManagementSystem.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -98,6 +98,91 @@ public sealed class BooksService
             _logger.LogError(ex,
                 "Unexpected error while creating Books for Books name {BookName} ",
                 request.BookName);
+        }
+
+        return null;
+    }
+
+    public BooksDto DeleteBooksRequest(int bookId)
+    {
+        try
+        {
+            Books? book = _dbContext.Books
+                .Include(b => b.Category)
+                .FirstOrDefault(b => b.BookId == bookId);
+
+            if (book is null)
+            {
+                throw new ConflictException($"Book with ID {bookId} not found.");
+            }
+
+            _dbContext.Books.Remove(book);
+            _dbContext.SaveChanges();
+
+            return new BooksDto(
+                book.BookId,
+                book.BookName,
+                book.Publisher,
+                book.Author,
+                book.Price,
+                book.Category?.CategoryName ?? string.Empty
+            );
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogError(ex, "Book not found with ID {BookId}", bookId);
+            throw;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Database error while deleting book with ID {BookId}", bookId);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while deleting book with ID {BookId}", bookId);
+            throw;
+        }
+    }
+
+    public BooksDto? UpdateBook(int bookId, CreateBooksRequest request)
+    {
+        try
+        {
+            Books? book = _dbContext.Books
+                .Include(b => b.Category)
+                .FirstOrDefault(b => b.BookId == bookId);
+
+            if (book is null)
+            {
+                _logger.LogWarning("Book not found with ID {BookId}", bookId);
+                return null;
+            }
+
+            book.BookName = request.BookName;
+            book.Publisher = request.Publisher;
+            book.Author = request.Author;
+            book.Price = request.Price;
+            book.CategoryId = request.CategoryId;
+
+            _dbContext.SaveChanges();
+
+            return new BooksDto(
+                book.BookId,
+                book.BookName,
+                book.Publisher,
+                book.Author,
+                book.Price,
+                book.Category?.CategoryName ?? string.Empty
+            );
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Database error while updating book with ID {BookId}", bookId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while updating book with ID {BookId}", bookId);
         }
 
         return null;

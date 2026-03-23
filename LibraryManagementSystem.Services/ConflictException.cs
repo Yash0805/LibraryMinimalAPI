@@ -1,3 +1,21 @@
-﻿namespace LibraryManagementSystem.Services;
+public sealed class ConflictException : Exception
+{
+    public ConflictException()
+    {
+    }
 
-public sealed class ConflictException(string message, int memberId) : Exception(message);
+    public ConflictException(string message) : base(message)
+    {
+    }
+
+    public ConflictException(string message, object? conflictingValue) : base(message)
+    {
+        ConflictingValue = conflictingValue;
+    }
+
+    public ConflictException(string message, Exception inner) : base(message, inner)
+    {
+    }
+
+    public object? ConflictingValue { get; }
+}

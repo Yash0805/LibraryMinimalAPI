@@ -1,4 +1,4 @@
-﻿using LibraryManagementSystem.Core.Dtos;
+using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Core.Request;
 using LibraryManagementSystem.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -13,6 +13,8 @@ public static class BooksEndpoints
         endpoint.MapGet("Books", GetBooks);
         endpoint.MapGet("Books/{BookId}", GetBookById);
         endpoint.MapPost("Books", CreateBooksRequest);
+        endpoint.MapDelete("Books/{BookId}", DeleteBook);
+        endpoint.MapPut("Books/{bookId:int}", UpdateBook);
         return endpoint;
     }
 
@@ -48,6 +50,40 @@ public static class BooksEndpoints
         BooksDto? result = booksService.CreateBooksRequest(request);
         return result is null
             ? TypedResults.Problem("There was some problem. See log for more details.")
+            : TypedResults.Ok(result);
+    }
+
+    private static IResult DeleteBook(BooksService booksService, int BookId)
+    {
+        try
+        {
+            BooksDto book = booksService.DeleteBooksRequest(BookId);
+            return TypedResults.Ok(book);
+        }
+        catch (ConflictException)
+        {
+            return TypedResults.NotFound();
+        }
+        catch (Exception)
+        {
+            return TypedResults.Problem("Error while deleting book.");
+        }
+    }
+
+    private static IResult UpdateBook(
+        BooksService booksService,
+        int bookId,
+        CreateBooksRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.BookName))
+        {
+            return TypedResults.BadRequest("Book Name is required");
+        }
+
+        BooksDto? result = booksService.UpdateBook(bookId, request);
+
+        return result is null
+            ? TypedResults.NotFound()
             : TypedResults.Ok(result);
     }
 }

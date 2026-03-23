@@ -1,4 +1,4 @@
-﻿using LibraryManagementSystem.Core.Dtos;
+using LibraryManagementSystem.Core.Dtos;
 using LibraryManagementSystem.Core.Request;
 using LibraryManagementSystem.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -14,6 +14,7 @@ public static class MembersEndpoints
         endpoints.MapGet("Members/{MemberId:int}", GetMembersById);
         endpoints.MapPost("Members", CreateMemberRequest);
         endpoints.MapPut("Members/{MemberId:int}", UpdateMemberRequest);
+        endpoints.MapDelete("Members/{MemberId:int}", DeleteMember);
         return endpoints;
     }
 
@@ -75,5 +76,18 @@ public static class MembersEndpoints
         return result is null
             ? TypedResults.Problem("There was some problem. See log for more details.")
             : TypedResults.Ok(result);
+    }
+
+    private static IResult DeleteMember(MembersService membersService, int MemberId)
+    {
+        try
+        {
+            MembersDto members = membersService.DeleteMemberRequest(MemberId);
+            return TypedResults.Ok(members);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return TypedResults.NotFound();
+        }
     }
 }
