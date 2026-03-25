@@ -11,7 +11,7 @@ public static class CategoryEndpoints
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         endpoints.MapGet("Category", GetCategory);
-        endpoints.MapGet("Category/{ CategoryId}", GetCategoryByID);
+        endpoints.MapGet("Category/{categoryId:int}", GetCategoryByID);
         endpoints.MapPost("Category", CreateCategoryRequest);
         endpoints.MapPut("Category/{categoryId:int}", UpdateCategory);
         endpoints.MapDelete("Category/{categoryId:int}", DeleteCategory);
@@ -24,9 +24,9 @@ public static class CategoryEndpoints
         return TypedResults.Ok(Category);
     }
 
-    private static IResult GetCategoryByID(CategoryService categoryService, int CategoryId)
+    private static IResult GetCategoryByID(CategoryService categoryService, int categoryId)
     {
-        CategoryDto? Category = categoryService.GetCategoryByID(CategoryId);
+        CategoryDto? Category = categoryService.GetCategoryByID(categoryId);
         return Category is null ? TypedResults.NotFound() : TypedResults.Ok(Category);
     }
 
