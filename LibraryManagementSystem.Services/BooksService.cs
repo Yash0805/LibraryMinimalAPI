@@ -11,52 +11,50 @@ public sealed class BooksService
     private readonly AppDbContext _dbContext;
     private readonly ILogger<BooksService> _logger;
 
-    public BooksService(AppDbContext dbContext)
+    public BooksService(AppDbContext dbContext, ILogger<BooksService> logger)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    // ✅ GET LIST
     public IEnumerable<BooksDto> GetBooksList(string? BookName = null)
     {
-        IQueryable<Books> query = _dbContext.Books.AsQueryable();
+        IQueryable<Books> query = _dbContext.Books.Include(b => b.Category);
+
         if (!string.IsNullOrEmpty(BookName))
         {
             query = query.Where(b => b.BookName.Contains(BookName));
         }
 
-        IReadOnlyList<BooksDto> Books = query
-            .Include(c => c.Category)
-            .Select
-            (b => new BooksDto
-            (
-                b.BookId,
-                b.BookName,
-                b.Publisher,
-                b.Author,
-                b.Price,
-                b.Category.CategoryName
-            ))
-            .ToList();
-        return Books;
+        return query.Select(b => new BooksDto(
+            b.BookId,
+            b.BookName,
+            b.Publisher,
+            b.Author,
+            b.Price,
+            b.CategoryId,
+            b.Category.CategoryName
+        )).ToList();
     }
 
+    // ✅ GET BY ID
     public BooksDto? GetBooksById(int BookId)
     {
-        Books? Book = _dbContext.Books
-            .Include(c => c.Category)
+        var book = _dbContext.Books
+            .Include(b => b.Category)
             .FirstOrDefault(b => b.BookId == BookId);
-        if (Book is null)
-        {
-            return null;
-        }
+
+        if (book is null) return null;
 
         return new BooksDto(
-            Book.BookId,
-            Book.BookName,
-            Book.Publisher,
-            Book.Author,
-            Book.Price,
-            Book.Category.CategoryName
+            book.BookId,
+            book.BookName,
+            book.Publisher,
+            book.Author,
+            book.Price,
+            book.CategoryId,
+            book.Category?.CategoryName ?? string.Empty
         );
     }
 
@@ -64,7 +62,7 @@ public sealed class BooksService
     {
         try
         {
-            Books Book = new()
+            var book = new Books
             {
                 BookName = request.BookName,
                 Publisher = request.Publisher,
@@ -72,52 +70,12 @@ public sealed class BooksService
                 Price = request.Price,
                 CategoryId = request.CategoryId
             };
-            _dbContext.Books.Add(Book);
+
+            _dbContext.Books.Add(book);
             _dbContext.SaveChanges();
 
-            BooksDto BooksDto = new(
-                Book.BookId,
-                Book.BookName,
-                Book.Publisher,
-                Book.Author,
-                Book.Price,
-                _dbContext.Category
-                    .Where(c => c.CategoryId == Book.CategoryId)
-                    .Select(c => c.CategoryName)
-                    .FirstOrDefault() ?? string.Empty
-            );
-            return BooksDto;
-        }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Database error while creating Books for Books name {BookName}",
-                request.BookName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex,
-                "Unexpected error while creating Books for Books name {BookName} ",
-                request.BookName);
-        }
-
-        return null;
-    }
-
-    public BooksDto DeleteBooksRequest(int bookId)
-    {
-        try
-        {
-            Books? book = _dbContext.Books
-                .Include(b => b.Category)
-                .FirstOrDefault(b => b.BookId == bookId);
-
-            if (book is null)
-            {
-                throw new ConflictException($"Book with ID {bookId} not found.");
-            }
-
-            _dbContext.Books.Remove(book);
-            _dbContext.SaveChanges();
+            var category = _dbContext.Category
+                .FirstOrDefault(c => c.CategoryId == book.CategoryId);
 
             return new BooksDto(
                 book.BookId,
@@ -125,39 +83,50 @@ public sealed class BooksService
                 book.Publisher,
                 book.Author,
                 book.Price,
-                book.Category?.CategoryName ?? string.Empty
+                book.CategoryId,
+                category?.CategoryName ?? string.Empty
             );
-        }
-        catch (ConflictException ex)
-        {
-            _logger.LogError(ex, "Book not found with ID {BookId}", bookId);
-            throw;
-        }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Database error while deleting book with ID {BookId}", bookId);
-            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while deleting book with ID {BookId}", bookId);
-            throw;
+            _logger.LogError(ex, "Error creating book");
+            return null;
         }
+    }
+
+    public BooksDto DeleteBooksRequest(int bookId)
+    {
+        var book = _dbContext.Books
+            .Include(b => b.Category)
+            .FirstOrDefault(b => b.BookId == bookId);
+
+        if (book is null)
+            throw new Exception("Book not found");
+
+        _dbContext.Books.Remove(book);
+        _dbContext.SaveChanges();
+
+        return new BooksDto(
+            book.BookId,
+            book.BookName,
+            book.Publisher,
+            book.Author,
+            book.Price,
+            book.CategoryId,
+            book.Category?.CategoryName ?? string.Empty
+        );
     }
 
     public BooksDto? UpdateBook(int bookId, CreateBooksRequest request)
     {
         try
         {
-            Books? book = _dbContext.Books
+            var book = _dbContext.Books
                 .Include(b => b.Category)
                 .FirstOrDefault(b => b.BookId == bookId);
 
             if (book is null)
-            {
-                _logger.LogWarning("Book not found with ID {BookId}", bookId);
                 return null;
-            }
 
             book.BookName = request.BookName;
             book.Publisher = request.Publisher;
@@ -167,24 +136,22 @@ public sealed class BooksService
 
             _dbContext.SaveChanges();
 
+            _dbContext.Entry(book).Reference(b => b.Category).Load();
+
             return new BooksDto(
                 book.BookId,
                 book.BookName,
                 book.Publisher,
                 book.Author,
                 book.Price,
+                book.CategoryId,
                 book.Category?.CategoryName ?? string.Empty
             );
         }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError(ex, "Database error while updating book with ID {BookId}", bookId);
-        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while updating book with ID {BookId}", bookId);
+            _logger.LogError(ex, "Error updating book");
+            return null;
         }
-
-        return null;
     }
 }
