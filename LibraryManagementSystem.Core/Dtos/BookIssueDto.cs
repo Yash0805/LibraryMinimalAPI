@@ -1,9 +1,11 @@
-﻿namespace LibraryManagementSystem.Core.Dtos;
+namespace LibraryManagementSystem.Core.Dtos;
 
 public sealed class BookIssueDto(
     int IssueId,
+    int MemberId,
     string MemberName,
     string MemberType,
+    int BookId,
     string BookName,
     DateOnly IssueDate,
     DateOnly ReturnDate,
@@ -12,8 +14,10 @@ public sealed class BookIssueDto(
     string Status)
 {
     public int IssueId { get; } = IssueId;
+    public int MemberId { get; } = MemberId;
     public string MemberName { get; } = MemberName;
     public string MemberType { get; } = MemberType;
+    public int BookId { get; } = BookId;
     public string BookName { get; } = BookName;
     public DateOnly IssueDate { get; } = IssueDate;
     public DateOnly ReturnDate { get; } = ReturnDate;

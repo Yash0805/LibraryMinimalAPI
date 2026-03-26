@@ -32,8 +32,10 @@ public sealed class BookIssueService
             (bi => new BookIssueDto
             (
                 bi.IssueId,
+                bi.MemberId,
                 bi.Member.MemberName,
                 bi.Member.MemberType,
+                bi.BookId,
                 bi.Book.BookName,
                 bi.IssueDate,
                 bi.ReturnDate,
@@ -58,8 +60,10 @@ public sealed class BookIssueService
 
         return new BookIssueDto(
             BookIssue.IssueId,
+            BookIssue.MemberId,
             BookIssue.Member.MemberName,
             BookIssue.Member.MemberType,
+            BookIssue.BookId,
             BookIssue.Book.BookName,
             BookIssue.IssueDate,
             BookIssue.ReturnDate,
@@ -84,8 +88,10 @@ public sealed class BookIssueService
             (bi => new BookIssueDto
             (
                 bi.IssueId,
+                bi.MemberId,
                 bi.Member.MemberName,
                 bi.Member.MemberType,
+                bi.BookId,
                 bi.Book.BookName,
                 bi.IssueDate,
                 bi.ReturnDate,
@@ -112,8 +118,10 @@ public sealed class BookIssueService
             (bi => new BookIssueDto
             (
                 bi.IssueId,
+                bi.MemberId,
                 bi.Member.MemberName,
                 bi.Member.MemberType,
+                bi.BookId,
                 bi.Book.BookName,
                 bi.IssueDate,
                 bi.ReturnDate,
@@ -129,8 +137,10 @@ public sealed class BookIssueService
     {
         return new BookIssueDto(
             bookIssue.IssueId,
+            bookIssue.MemberId,
             bookIssue.Member.MemberName,
             bookIssue.Member.MemberType,
+            bookIssue.BookId,
             bookIssue.Book.BookName,
             bookIssue.IssueDate,
             bookIssue.ReturnDate,
@@ -309,8 +319,10 @@ public sealed class BookIssueService
 
             return new BookIssueDto(
                 bookIssue.IssueId,
+                bookIssue.MemberId,
                 bookIssue.Member.MemberName,
                 bookIssue.Member.MemberType,
+                bookIssue.BookId,
                 bookIssue.Book.BookName,
                 bookIssue.IssueDate,
                 bookIssue.ReturnDate,
