@@ -224,7 +224,7 @@ public sealed class BookIssueService
         return null;
     }
 
-    public BookIssueDto? PatchBookIssueRequest(PatchBookIssueRequest request, int IssueId)
+    public BookIssueDto? PatchBookIssueRequest(int IssueId)
     {
         try
         {
@@ -256,7 +256,7 @@ public sealed class BookIssueService
         return null;
     }
 
-    public BookIssueDto PatchRenewedBookIssueRequest(PatchRenewedBookIssueRequest request, int IssueId)
+    public BookIssueDto PatchRenewedBookIssueRequest(int IssueId)
     {
         try
         {

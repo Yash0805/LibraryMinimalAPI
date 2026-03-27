@@ -54,10 +54,10 @@ public static class BookIssueEndpoints
             : TypedResults.Ok(result);
     }
 
-    private static IResult PatchBookIssueRequest(BookIssueService bookIssueservice, PatchBookIssueRequest request,
+    private static IResult PatchBookIssueRequest(BookIssueService bookIssueservice,
         int IssueId)
     {
-        BookIssueDto? result = bookIssueservice.PatchBookIssueRequest(request, IssueId);
+        BookIssueDto? result = bookIssueservice.PatchBookIssueRequest(IssueId);
 
         return result is null
             ? TypedResults.NotFound()
@@ -66,10 +66,10 @@ public static class BookIssueEndpoints
 
     private static IResult PatchRenewedBookIssueRequest(
         BookIssueService bookIssueService,
-        int IssueId,
-        PatchRenewedBookIssueRequest request)
+        int IssueId
+  )
     {
-        BookIssueDto? result = bookIssueService.PatchRenewedBookIssueRequest(request, IssueId);
+        BookIssueDto? result = bookIssueService.PatchRenewedBookIssueRequest(IssueId);
         return result is null
             ? TypedResults.NotFound()
             : TypedResults.Ok(result);
