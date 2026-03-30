@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace LibraryManagementSystem.Persistence.Configurations;
@@ -18,5 +18,7 @@ public sealed class MembersEntityConfigurations : IEntityTypeConfiguration<Membe
         builder.Property(m => m.MemberType)
             .IsRequired()
             .HasMaxLength(20);
+
+        builder.HasMany(i => i.BookIssue).WithOne(m => m.Member).HasForeignKey(m => m.MemberId).OnDelete(DeleteBehavior.Restrict);
     }
 }

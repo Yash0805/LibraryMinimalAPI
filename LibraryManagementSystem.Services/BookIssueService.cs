@@ -352,6 +352,8 @@ public sealed class BookIssueService
     {
         try
         {
+            //BookIssue? bookIssue = _dbContext.BookIssue
+            //    .Find(issueId);
             BookIssue? bookIssue = _dbContext.BookIssue
                 .Include(b => b.Book)
                 .Include(m => m.Member)
@@ -363,14 +365,14 @@ public sealed class BookIssueService
                 return null;
             }
 
-            bool memberExists = _dbContext.Members.Any(m => m.MemberId == request.MemberId);
-            if (!memberExists)
+            Members? member = _dbContext.Members.FirstOrDefault(m => m.MemberId == request.MemberId);
+            if (member is null)
             {
                 throw new Exception($"Member with ID {request.MemberId} not found");
             }
 
-            bool bookExists = _dbContext.Books.Any(b => b.BookId == request.BookId);
-            if (!bookExists)
+            Books? book = _dbContext.Books.FirstOrDefault(b => b.BookId == request.BookId);
+            if (book is null)
             {
                 throw new Exception($"Book with ID {request.BookId} not found");
             }
@@ -382,7 +384,18 @@ public sealed class BookIssueService
 
             _dbContext.SaveChanges();
 
-            return BookView(bookIssue);
+            return new BookIssueDto(
+                bookIssue.IssueId,
+            bookIssue.MemberId,
+            member.MemberName,
+            member.MemberType,
+            bookIssue.BookId,
+            book.BookName,
+            bookIssue.IssueDate,
+            bookIssue.ReturnDate,
+            bookIssue.RenewCount,
+            bookIssue.RenewDate,
+            bookIssue.Status);
         }
         catch (DbUpdateException ex)
         {

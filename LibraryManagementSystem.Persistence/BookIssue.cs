@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace LibraryManagementSystem.Persistence;
 
@@ -12,7 +12,7 @@ public sealed class BookIssue
     public required DateOnly ReturnDate { get; set; }
     public int RenewCount { get; set; }
     public DateOnly? RenewDate { get; set; }
-    public string Status { get; set; }
-    public Members Member { get; set; }
-    public Books Book { get; set; }
+    public string? Status { get; set; }
+    public Members? Member { get; set; }
+    public Books? Book { get; set; }
 }
