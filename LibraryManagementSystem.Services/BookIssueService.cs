@@ -352,8 +352,6 @@ public sealed class BookIssueService
     {
         try
         {
-            //BookIssue? bookIssue = _dbContext.BookIssue
-            //    .Find(issueId);
             BookIssue? bookIssue = _dbContext.BookIssue
                 .Include(b => b.Book)
                 .Include(m => m.Member)

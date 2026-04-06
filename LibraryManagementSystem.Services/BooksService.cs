@@ -16,8 +16,6 @@ public sealed class BooksService
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
-
-    // ✅ GET LIST
     public IEnumerable<BooksDto> GetBooksList(string? BookName = null)
     {
         IQueryable<Books> query = _dbContext.Books.Include(b => b.Category);
@@ -37,8 +35,6 @@ public sealed class BooksService
             b.Category.CategoryName
         )).ToList();
     }
-
-    // ✅ GET BY ID
     public BooksDto? GetBooksById(int BookId)
     {
         var book = _dbContext.Books
